@@ -33,6 +33,9 @@
     {% endif %}
 >
     <h1>Manage Your Finances</h1>
+    {% if event_message %}
+        <p style="color: yellow;">Event: {{ event_message }}</p>
+    {% endif %}
     <p>Day: {{ player_data['day'] }}</p>
     <p>Time: {{ player_data['time'] }} {{ player_data['period'] }}</p>
     <p>Current Money: ${{ player_data['money'] }}</p>

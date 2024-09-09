@@ -1,3 +1,4 @@
+import random
 from flask import Flask, render_template, request, redirect, url_for
 
 # Initialize the Flask app
@@ -65,6 +66,49 @@ def choose_job():
 def game():
     return render_template('game.html', player_data=player_data)
 
+# Function to handle random events
+def random_event():
+    event_probability = random.random()
+
+    # Example events with 10% chance of occurring each time
+    if event_probability < 0.10:
+        event_type = random.choice(['good', 'bad'])
+
+        if event_type == 'good':
+            # Good event: bonus money or mental boost
+            event = random.choice([
+                "You found $500 on the street!",
+                "Your side hustle paid off unexpectedly well, you earned $1000!",
+                "You had an amazing time with friends, mental state +20!"
+            ])
+
+            if "found $500" in event:
+                player_data['money'] += 500
+            elif "side hustle" in event:
+                player_data['money'] += 1000
+            elif "amazing time" in event:
+                player_data['mental_state'] += 20
+        
+        elif event_type == 'bad':
+            # Bad event: money loss or health reduction
+            event = random.choice([
+                "You had a medical emergency, costing $1000 in bills!",
+                "You lost your wallet, $300 gone!",
+                "You had a stressful week, mental state -20!"
+            ])
+
+            if "medical emergency" in event:
+                player_data['money'] -= 1000
+                player_data['health'] -= 10
+            elif "lost your wallet" in event:
+                player_data['money'] -= 300
+            elif "stressful week" in event:
+                player_data['mental_state'] -= 20
+
+        return event  # Return the event message to display to the player
+    
+    return None  # No event occurred
+
 @app.route('/decision', methods=['POST'])
 def decision():
     decision = request.form['decision']
@@ -72,38 +116,49 @@ def decision():
     # Update the time (for each decision, the time advances)
     update_time()
 
+    # Health and mental state degrade every cycle first
+    player_data['health'] = max(player_data['health'] - 5, 0)  # Health shouldn't go below 0
+    player_data['mental_state'] = max(player_data['mental_state'] - 5, 0)  # Mental state shouldn't go below 0
+
     # Financial and health decisions
     if decision == 'save':
-        player_data['savings'] += player_data['money'] * 0.1
-        player_data['money'] -= player_data['money'] * 0.1
+        player_data['savings'] += round(player_data['money'] * 0.1, 2)  # Round to 2 decimal places
+        player_data['money'] -= round(player_data['money'] * 0.1, 2)
     elif decision == 'invest':
-        player_data['investments'] += player_data['money'] * 0.2
-        player_data['money'] -= player_data['money'] * 0.2
+        player_data['investments'] += round(player_data['money'] * 0.2, 2)
+        player_data['money'] -= round(player_data['money'] * 0.2, 2)
     elif decision == 'spend':
         player_data['money'] -= 500
-        player_data['mental_state'] += 10
+        player_data['mental_state'] = min(player_data['mental_state'] + 10, 100)  # Cap mental state at 100
     elif decision == 'pay_debt':
         if player_data['debt'] >= 1000:
-            player_data['debt'] -= 1000
-            player_data['money'] -= 1000
+            player_data['debt'] -= round(1000, 2)
+            player_data['money'] -= round(1000, 2)
         else:
-            player_data['money'] -= player_data['debt']
+            player_data['money'] -= round(player_data['debt'], 2)
             player_data['debt'] = 0
     elif decision == 'take_loan':
-        player_data['money'] += 5000
-        player_data['debt'] += 5000 * 1.05
+        player_data['money'] += round(5000, 2)
+        player_data['debt'] += round(5000 * 1.05, 2)  # 5% interest
     elif decision == 'side_hustle':
-        player_data['money'] += 3000
+        player_data['money'] += round(3000, 2)
     elif decision == 'buy_food':
-        player_data['money'] -= 50
-        player_data['health'] += 10
+        player_data['money'] -= round(50, 2)
+        player_data['health'] = min(player_data['health'] + 10, 100)  # Cap health at 100
     elif decision == 'buy_entertainment':
-        player_data['money'] -= 200
-        player_data['mental_state'] += 20
+        player_data['money'] -= round(200, 2)
+        player_data['mental_state'] = min(player_data['mental_state'] + 20, 100)  # Cap mental state at 100
 
-    # Health and mental state degrade every cycle
-    player_data['health'] -= 5
-    player_data['mental_state'] -= 5
+    # Format money and debt to 2 decimal places
+    player_data['money'] = round(player_data['money'], 2)
+    player_data['debt'] = round(player_data['debt'], 2)
+
+    # Check for random event
+    event_message = random_event()
+
+    # Check for victory condition
+    if player_data['debt'] == 0 and player_data['money'] >= 1000000:
+        return redirect(url_for('victory'))
 
     # Check for game over conditions
     if player_data['mental_state'] <= 0:
@@ -111,7 +166,12 @@ def decision():
     elif player_data['health'] <= 0:
         return redirect(url_for('game_over', reason="health"))
 
-    return redirect(url_for('game'))
+    return render_template('game.html', player_data=player_data, event_message=event_message)
+
+# Route for victory screen
+@app.route('/victory')
+def victory():
+    return render_template('victory.html')
 
 @app.route('/game_over/<reason>')
 def game_over(reason):
@@ -126,7 +186,6 @@ def game_over(reason):
 def restart_game():
     reset_game()
     return redirect(url_for('lore'))
-
 
 # Running the app
 if __name__ == '__main__':
