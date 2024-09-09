@@ -1,17 +1,39 @@
-<!-- templates/apartment.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Apartment</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <h1>Welcome to Your Apartment</h1>
-    <p>What would you like to do?</p>
-    <p>Health: {{ player_data['health'] }}</p>
-    <p>Mental State: {{ player_data['mental_state'] }}</p>
-    <a href="/town">Go to Town</a> | 
-    <a href="/work">Go to Work</a>
+    <div class="container">
+        <h1>Your Apartment</h1>
+        <p>You have just graduated college and are now stuck in debt. Manage your finances wisely to pay off your debt and save money.</p>
+
+        <!-- Status Panel -->
+        <div class="status-panel">
+            <div>
+                <p>Health: <span>{{ player_data['health'] }}</span></p>
+            </div>
+            <div>
+                <p>Mental State: <span>{{ player_data['mental_state'] }}</span></p>
+            </div>
+            <div>
+                <p>Money: $<span>{{ player_data['money'] }}</span></p>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <form action="/work" method="GET">
+            <button type="submit">Go to Work</button>
+        </form>
+        <form action="/town" method="GET">
+            <button type="submit">Go to Town</button>
+        </form>
+        <form action="/bank" method="GET">
+            <button type="submit">Visit the Bank</button>
+        </form>
+    </div>
 </body>
 </html>

@@ -1,19 +1,42 @@
-<!-- templates/town.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Town</title>
+    <title>Town</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <h1>Welcome to the Town</h1>
-    <p>Select where you'd like to go:</p>
-    <ul>
-        <li><a href="/bank">Go to the Bank</a></li>
-        <li><a href="/food">Go to the Food Shop</a></li>
-        <li><a href="/entertainment">Go to Entertainment</a></li>
-        <li><a href="/apartment">Go Back to Apartment</a></li>
-    </ul>
+    <div class="container">
+        <h1>Town</h1>
+        <p>Welcome to town. What would you like to do?</p>
+
+        <!-- Status Panel -->
+        <div class="status-panel">
+            <div>
+                <p>Health: <span>{{ player_data['health'] }}</span></p>
+            </div>
+            <div>
+                <p>Mental State: <span>{{ player_data['mental_state'] }}</span></p>
+            </div>
+            <div>
+                <p>Money: $<span>{{ player_data['money'] }}</span></p>
+            </div>
+        </div>
+
+        <!-- Actions in Town -->
+        <form action="/food" method="GET">
+            <button type="submit">Buy Food</button>
+        </form>
+        <form action="/entertainment" method="GET">
+            <button type="submit">Entertainment</button>
+        </form>
+        <form action="/bank" method="GET">
+            <button type="submit">Visit the Bank</button>
+        </form>
+
+        <br>
+        <a href="/apartment">Go Back to Apartment</a>
+    </div>
 </body>
 </html>
