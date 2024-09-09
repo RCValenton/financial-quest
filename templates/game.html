@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Game</title>
+</head>
+<body>
+    <h1>Game Screen</h1>
+    <p>Current Money: ${{ player_data['money'] }}</p>
+    <p>Savings: ${{ player_data['savings'] }}</p>
+    <p>Debt: ${{ player_data['debt'] }}</p>
+    <p>Investments: ${{ player_data['investments'] }}</p>
+
+    <form action="/decision" method="post">
+        <p>Choose a financial decision:</p>
+        <button type="submit" name="decision" value="save">Save 10% of Money</button>
+        <button type="submit" name="decision" value="invest">Invest 20% of Money</button>
+        <button type="submit" name="decision" value="spend">Spend $500</button>
+        <button type="submit" name="decision" value="pay_debt">Pay Off Debt</button>
+    </form>
+</body>
+</html>
