@@ -4,10 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Financial Game</title>
+    <style>
+        body {
+            color: white;
+            text-align: center;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        p {
+            font-size: 18px;
+        }
+        form {
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 5px;
+        }
+    </style>
 </head>
-<body>
+<body 
+    {% if player_data['period'] == 'AM' %}
+        style="background-color: lightblue; background-image: url('/static/sun.png'); background-size: cover; background-position: center;"
+    {% else %}
+        style="background-color: darkblue; background-image: url('/static/moon.png'); background-size: cover; background-position: center;"
+    {% endif %}
+>
     <h1>Manage Your Finances</h1>
     <p>Day: {{ player_data['day'] }}</p>
+    <p>Time: {{ player_data['time'] }} {{ player_data['period'] }}</p>
     <p>Current Money: ${{ player_data['money'] }}</p>
     <p>Savings: ${{ player_data['savings'] }}</p>
     <p>Debt: ${{ player_data['debt'] }}</p>
