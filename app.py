@@ -46,6 +46,21 @@ def update_time():
     elif player_data['time'] == 13:
         player_data['time'] = 1  # Reset time after 12-hour format
 
+# Function to check and trigger storyline milestones
+def check_storyline():
+    storyline_message = None
+    
+    if player_data['debt'] <= 75000 and player_data['debt'] > 50000:
+        storyline_message = "You're making great progress in paying off your debt! Keep going!"
+    elif player_data['debt'] <= 50000 and player_data['debt'] > 0:
+        storyline_message = "You're halfway to paying off your debt! Stay focused and healthy."
+    elif player_data['debt'] == 0 and player_data['money'] < 1000000:
+        storyline_message = "Congratulations on paying off your debt! Now it's time to focus on building your wealth."
+    elif player_data['money'] >= 1000000:
+        storyline_message = "You've reached your goal of $1,000,000! You've achieved financial freedom!"
+    
+    return storyline_message
+
 # Route for apartment page (starting point after selecting a job)
 @app.route('/apartment')
 def apartment():
@@ -70,7 +85,6 @@ def investment_decision():
         return render_template('investment.html', player_data=player_data, event=event)
     return redirect(url_for('town'))  # Redirect to town if no investment event exists
 
-
 @app.route('/work_action', methods=['POST'])
 def work_action():
     job = player_data['job']
@@ -90,6 +104,9 @@ def work_action():
     elif player_data['mental_state'] == 0:
         return redirect(url_for('game_over', reason="mental_state"))
 
+    # Check for storyline progression
+    storyline_message = check_storyline()
+
     # Check for side hustle outcome
     side_hustle_message = check_side_hustle_outcome()
 
@@ -104,8 +121,7 @@ def work_action():
     if player_data.get('investment_event'):
         return redirect(url_for('investment_decision'))
 
-    return render_template('work.html', player_data=player_data, event_message=side_hustle_message or event_message)
-
+    return render_template('work.html', player_data=player_data, event_message=side_hustle_message or event_message, storyline_message=storyline_message)
 
 # Handle job selection from the work page
 @app.route('/choose_job', methods=['POST'])
