@@ -10,6 +10,13 @@
     <div class="container">
         <h1>Your Apartment</h1>
         <p>You have just graduated college and are now stuck in debt. Manage your finances wisely to pay off your debt and save money.</p>
+        
+        <!-- Show the Event Message if Any -->
+        {% if event_message %}
+            <div class="event-message">
+                <p><strong>Event:</strong> {{ event_message }}</p>
+            </div>
+        {% endif %}
 
         <!-- Status Panel -->
         <div class="status-panel">

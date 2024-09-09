@@ -89,3 +89,15 @@ form {
     font-weight: bold;
     color: #007bff;
 }
+
+/* Event Message Styling */
+.event-message {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ffeeba;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: bold;
+}

@@ -8,6 +8,13 @@
     <title>Bank</title>
 </head>
 <body>
+     <!-- Show the Event Message if Any -->
+     {% if event_message %}
+     <div class="event-message">
+         <p><strong>Event:</strong> {{ event_message }}</p>
+     </div>
+     {% endif %}
+
     <h1>Bank Services</h1>
     <p>Money: ${{ player_data['money'] }}</p>
     <p>Debt: ${{ player_data['debt'] }}</p>

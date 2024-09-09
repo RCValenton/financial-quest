@@ -8,6 +8,20 @@
     <title>Food Shop</title>
 </head>
 <body>
+     <!-- Show the Event Message if Any -->
+     {% if event_message %}
+     <div class="event-message">
+         <p><strong>Event:</strong> {{ event_message }}</p>
+     </div>
+     {% endif %}
+
+     <!-- Show the Storyline Message if Any (once we integrate storyline) -->
+     {% if storyline_message %}
+     <div class="storyline-message">
+         <p><strong>Storyline:</strong> {{ storyline_message }}</p>
+     </div>
+     {% endif %}
+     
     <h1>Food Shop</h1>
     <p>Buy food to maintain your health.</p>
 

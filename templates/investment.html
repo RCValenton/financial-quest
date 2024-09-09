@@ -1,0 +1,22 @@
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Decision</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Investment Opportunity</h1>
+        <p>{{ event }}</p>
+        <form action="/handle_investment" method="POST">
+            <button type="submit" name="decision" value="accept">Accept</button>
+            <button type="submit" name="decision" value="decline">Decline</button>
+        </form>
+        <br>
+        <a href="/town">Go Back to Town</a>
+    </div>
+</body>
+</html>

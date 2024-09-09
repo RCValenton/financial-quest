@@ -73,8 +73,8 @@ def work_action():
         player_data['money'] += 2000
 
     # Decrease health and mental state after working
-    player_data['health'] = max(player_data['health'] - 5, 0)  # Health shouldn't drop below 0
-    player_data['mental_state'] = max(player_data['mental_state'] - 5, 0)  # Mental state shouldn't drop below 0
+    player_data['health'] = max(player_data['health'] - 5, 0)
+    player_data['mental_state'] = max(player_data['mental_state'] - 5, 0)
 
     # Check for Game Over
     if player_data['health'] == 0:
@@ -82,9 +82,14 @@ def work_action():
     elif player_data['mental_state'] == 0:
         return redirect(url_for('game_over', reason="mental_state"))
 
-    # Redirect the player back to the work page after working
-    return redirect(url_for('work'))
+    # Call random_event() to see if an event occurs and get the event message
+    event_message = random_event()
 
+    # Check if it's an investment event that requires a decision
+    if player_data.get('investment_event'):
+        return redirect(url_for('investment_decision'))
+
+    return render_template('work.html', player_data=player_data, event_message=event_message)
 
 
 # Handle job selection from the work page
@@ -181,47 +186,90 @@ def lore():
     return render_template('lore.html', player_data=player_data)
 
 # Function to handle random events
+# Expanded random event function
 def random_event():
     event_probability = random.random()
 
-    # Example events with 10% chance of occurring each time
+    # 10% chance of a random event
     if event_probability < 0.10:
-        event_type = random.choice(['good', 'bad'])
+        event_type = random.choice(['good', 'bad', 'investment'])
 
         if event_type == 'good':
-            # Good event: bonus money or mental boost
             event = random.choice([
                 "You found $500 on the street!",
                 "Your side hustle paid off unexpectedly well, you earned $1000!",
                 "You had an amazing time with friends, mental state +20!"
             ])
-
+            # Apply effects based on the event
             if "found $500" in event:
                 player_data['money'] += 500
             elif "side hustle" in event:
                 player_data['money'] += 1000
             elif "amazing time" in event:
-                player_data['mental_state'] += 20
-        
+                player_data['mental_state'] = min(player_data['mental_state'] + 20, 100)
+
         elif event_type == 'bad':
-            # Bad event: money loss or health reduction
             event = random.choice([
                 "You had a medical emergency, costing $1000 in bills!",
                 "You lost your wallet, $300 gone!",
                 "You had a stressful week, mental state -20!"
             ])
-
+            # Apply effects based on the event
             if "medical emergency" in event:
                 player_data['money'] -= 1000
-                player_data['health'] -= 10
+                player_data['health'] = max(player_data['health'] - 10, 0)
             elif "lost your wallet" in event:
                 player_data['money'] -= 300
             elif "stressful week" in event:
-                player_data['mental_state'] -= 20
+                player_data['mental_state'] = max(player_data['mental_state'] - 20, 0)
 
-        return event  # Return the event message to display to the player
+        elif event_type == 'investment':
+            event = random.choice([
+                "A friend suggests you invest $1000 in a new business venture. Do you accept?",
+                "You find out about a stock opportunity. Invest $2000 for a chance to double your money!"
+            ])
+            # Store the event and ask the player for a decision
+            player_data['investment_event'] = event
+            return None  # Return None to indicate the event requires input
+
+        return event
+    return None
+
+@app.route('/investment_decision')
+def investment_decision():
+    event = player_data.get('investment_event', None)
+    if event:
+        return render_template('investment.html', player_data=player_data, event=event)
+    return redirect(url_for('town'))  # Redirect to town if no investment event exists
+
+@app.route('/handle_investment', methods=['POST'])
+def handle_investment():
+    decision = request.form['decision']
+    event = player_data.get('investment_event', None)
     
-    return None  # No event occurred
+    if event and decision == 'accept':
+        if "Invest $1000" in event:
+            if random.random() < 0.5:  # 50% chance to succeed
+                player_data['money'] += 1000
+                event_message = "The investment paid off! You earned $1000."
+            else:
+                player_data['money'] -= 1000
+                event_message = "The investment failed. You lost $1000."
+        elif "Invest $2000" in event:
+            if random.random() < 0.5:
+                player_data['money'] += 2000
+                event_message = "The stock soared! You earned $2000."
+            else:
+                player_data['money'] -= 2000
+                event_message = "The stock crashed. You lost $2000."
+    else:
+        event_message = "You decided not to invest."
+
+    # Clear the investment event after processing
+    player_data['investment_event'] = None
+
+    return render_template('town.html', player_data=player_data, event_message=event_message)
+
 
 @app.route('/decision', methods=['POST'])
 def decision():
