@@ -352,11 +352,10 @@ def handle_investment():
         # Clear the investment event after processing
         player_data['investment_event'] = None
 
-        # Redirect to the town or any other relevant page after investment
+        # Return the player to the town with the event message
         return render_template('town.html', player_data=player_data, event_message=event_message)
     
     return redirect(url_for('town'))
-
 
 @app.route('/decision', methods=['POST'])
 def decision():
