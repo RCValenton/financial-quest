@@ -63,7 +63,6 @@ def work():
     else:
         return render_template('choose_job.html')
 
-# Handle work action based on the job
 @app.route('/work_action', methods=['POST'])
 def work_action():
     job = player_data['job']
@@ -73,8 +72,20 @@ def work_action():
     elif job == 'Online Business':
         player_data['money'] += 2000
 
+    # Decrease health and mental state after working
+    player_data['health'] = max(player_data['health'] - 5, 0)  # Health shouldn't drop below 0
+    player_data['mental_state'] = max(player_data['mental_state'] - 5, 0)  # Mental state shouldn't drop below 0
+
+    # Check for Game Over
+    if player_data['health'] == 0:
+        return redirect(url_for('game_over', reason="health"))
+    elif player_data['mental_state'] == 0:
+        return redirect(url_for('game_over', reason="mental_state"))
+
     # Redirect the player back to the work page after working
     return redirect(url_for('work'))
+
+
 
 # Handle job selection from the work page
 @app.route('/choose_job', methods=['POST'])
@@ -178,7 +189,6 @@ def random_event():
     
     return None  # No event occurred
 
-# Route for making decisions
 @app.route('/decision', methods=['POST'])
 def decision():
     decision = request.form['decision']
@@ -223,6 +233,12 @@ def decision():
     player_data['money'] = round(player_data['money'], 2)
     player_data['debt'] = round(player_data['debt'], 2)
 
+    # Check for Game Over
+    if player_data['health'] == 0:
+        return redirect(url_for('game_over', reason="health"))
+    elif player_data['mental_state'] == 0:
+        return redirect(url_for('game_over', reason="mental_state"))
+
     # Check for random event
     event_message = random_event()
 
@@ -230,13 +246,9 @@ def decision():
     if player_data['debt'] == 0 and player_data['money'] >= 1000000:
         return redirect(url_for('victory'))
 
-    # Check for game over conditions
-    if player_data['mental_state'] <= 0:
-        return redirect(url_for('game_over', reason="mental_state"))
-    elif player_data['health'] <= 0:
-        return redirect(url_for('game_over', reason="health"))
-
+    # Redirect the player back to the game page after making a decision
     return render_template('game.html', player_data=player_data, event_message=event_message)
+
 
 # Route for victory screen
 @app.route('/victory')
