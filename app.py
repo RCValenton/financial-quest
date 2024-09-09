@@ -82,14 +82,20 @@ def work_action():
     elif player_data['mental_state'] == 0:
         return redirect(url_for('game_over', reason="mental_state"))
 
+    # Check for side hustle outcome
+    side_hustle_message = check_side_hustle_outcome()
+
     # Call random_event() to see if an event occurs and get the event message
     event_message = random_event()
 
-    # Check if it's an investment event that requires a decision
-    if player_data.get('investment_event'):
-        return redirect(url_for('investment_decision'))
+    # Check if it's a side hustle that requires a decision
+    if player_data.get('side_hustle') and not player_data['side_hustle']['accepted']:
+        return redirect(url_for('side_hustle_decision'))
 
-    return render_template('work.html', player_data=player_data, event_message=event_message)
+    return render_template('work.html', player_data=player_data, event_message=side_hustle_message or event_message)
+
+
+
 
 
 # Handle job selection from the work page
@@ -186,13 +192,13 @@ def lore():
     return render_template('lore.html', player_data=player_data)
 
 # Function to handle random events
-# Expanded random event function
+# Expanded random event function to include side hustle discovery
 def random_event():
     event_probability = random.random()
 
     # 10% chance of a random event
     if event_probability < 0.10:
-        event_type = random.choice(['good', 'bad', 'investment'])
+        event_type = random.choice(['good', 'bad', 'investment', 'side_hustle'])
 
         if event_type == 'good':
             event = random.choice([
@@ -200,7 +206,6 @@ def random_event():
                 "Your side hustle paid off unexpectedly well, you earned $1000!",
                 "You had an amazing time with friends, mental state +20!"
             ])
-            # Apply effects based on the event
             if "found $500" in event:
                 player_data['money'] += 500
             elif "side hustle" in event:
@@ -214,7 +219,6 @@ def random_event():
                 "You lost your wallet, $300 gone!",
                 "You had a stressful week, mental state -20!"
             ])
-            # Apply effects based on the event
             if "medical emergency" in event:
                 player_data['money'] -= 1000
                 player_data['health'] = max(player_data['health'] - 10, 0)
@@ -228,47 +232,108 @@ def random_event():
                 "A friend suggests you invest $1000 in a new business venture. Do you accept?",
                 "You find out about a stock opportunity. Invest $2000 for a chance to double your money!"
             ])
-            # Store the event and ask the player for a decision
             player_data['investment_event'] = event
             return None  # Return None to indicate the event requires input
+
+        elif event_type == 'side_hustle':
+            # Create a list of random side hustle names
+            side_hustles = ['selling homemade candles', 'starting a blog', 'creating an online store', 'becoming a freelancer']
+            side_hustle_name = random.choice(side_hustles)
+            event = f"You discovered a side hustle opportunity: {side_hustle_name}. Do you want to accept?"
+
+            # Store the side hustle details
+            player_data['side_hustle'] = {
+                'name': side_hustle_name,
+                'days_until_outcome': random.randint(1, 3),  # Random number of days until the result
+                'accepted': False  # Whether the player accepted or not
+            }
+
+            # Return None to indicate the player must make a choice
+            return None
 
         return event
     return None
 
-@app.route('/investment_decision')
-def investment_decision():
-    event = player_data.get('investment_event', None)
-    if event:
-        return render_template('investment.html', player_data=player_data, event=event)
-    return redirect(url_for('town'))  # Redirect to town if no investment event exists
+
+
+def check_side_hustle_outcome():
+    side_hustle = player_data.get('side_hustle', None)
+
+    if side_hustle and side_hustle['accepted']:
+        side_hustle['days_until_outcome'] -= 1
+
+        if side_hustle['days_until_outcome'] <= 0:
+            if random.random() < 0.5:  # 50% chance for success
+                player_data['money'] += 1000
+                event_message = f"Your side hustle '{side_hustle['name']}' was a success! You earned $1000."
+            else:
+                player_data['money'] -= 500
+                event_message = f"Your side hustle '{side_hustle['name']}' failed, and you had to pay $500 in production costs."
+
+            # Clear the side hustle after it's resolved
+            player_data['side_hustle'] = None
+
+            return event_message
+    return None
+
+
+@app.route('/side_hustle_decision')
+def side_hustle_decision():
+    side_hustle = player_data.get('side_hustle', None)
+    if side_hustle and not side_hustle['accepted']:
+        return render_template('side_hustle.html', player_data=player_data, side_hustle=side_hustle)
+    return redirect(url_for('town'))  # Redirect to town if no side hustle is pending
+
+@app.route('/handle_side_hustle', methods=['POST'])
+def handle_side_hustle():
+    decision = request.form['decision']
+    side_hustle = player_data.get('side_hustle', None)
+
+    if side_hustle:
+        if decision == 'accept':
+            player_data['side_hustle']['accepted'] = True
+            event_message = f"You accepted the side hustle: {side_hustle['name']}. The outcome will be decided in {side_hustle['days_until_outcome']} days."
+        else:
+            player_data['side_hustle'] = None  # Reject the side hustle
+            event_message = "You decided not to pursue the side hustle."
+
+        return render_template('town.html', player_data=player_data, event_message=event_message)
+    
+    return redirect(url_for('town'))
 
 @app.route('/handle_investment', methods=['POST'])
 def handle_investment():
     decision = request.form['decision']
     event = player_data.get('investment_event', None)
     
-    if event and decision == 'accept':
-        if "Invest $1000" in event:
-            if random.random() < 0.5:  # 50% chance to succeed
-                player_data['money'] += 1000
-                event_message = "The investment paid off! You earned $1000."
-            else:
-                player_data['money'] -= 1000
-                event_message = "The investment failed. You lost $1000."
-        elif "Invest $2000" in event:
-            if random.random() < 0.5:
-                player_data['money'] += 2000
-                event_message = "The stock soared! You earned $2000."
-            else:
-                player_data['money'] -= 2000
-                event_message = "The stock crashed. You lost $2000."
-    else:
-        event_message = "You decided not to invest."
+    if event:
+        if decision == 'accept':
+            # Investment decision was accepted
+            if "Invest $1000" in event:
+                if random.random() < 0.5:  # 50% chance to succeed
+                    player_data['money'] += 1000
+                    event_message = "The investment paid off! You earned $1000."
+                else:
+                    player_data['money'] -= 1000
+                    event_message = "The investment failed. You lost $1000."
+            elif "Invest $2000" in event:
+                if random.random() < 0.5:
+                    player_data['money'] += 2000
+                    event_message = "The stock soared! You earned $2000."
+                else:
+                    player_data['money'] -= 2000
+                    event_message = "The stock crashed. You lost $2000."
+        else:
+            # Investment decision was declined
+            event_message = "You decided not to invest."
 
-    # Clear the investment event after processing
-    player_data['investment_event'] = None
+        # Clear the investment event after processing
+        player_data['investment_event'] = None
 
-    return render_template('town.html', player_data=player_data, event_message=event_message)
+        # Redirect to the town or any other relevant page after investment
+        return render_template('town.html', player_data=player_data, event_message=event_message)
+    
+    return redirect(url_for('town'))
 
 
 @app.route('/decision', methods=['POST'])
