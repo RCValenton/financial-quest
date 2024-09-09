@@ -101,3 +101,84 @@ form {
     text-align: center;
     font-weight: bold;
 }
+
+/* Stock Market Styling */
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+h1, h2 {
+    color: #333;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.stock-container {
+    margin-bottom: 40px;
+}
+
+a {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 15px;
+    background-color: #333;
+    color: #fff;
+    text-decoration: none;
+}
+
+a:hover {
+    background-color: #555;
+}
+
+.btn-back {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    margin-top: 20px;
+    border: none;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.btn-back:hover {
+    background-color: #0056b3;
+}
+
+.stock-list table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.stock-list th, .stock-list td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.stock-list th {
+    background-color: #f2f2f2;
+}

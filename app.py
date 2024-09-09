@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+import os
 import random
 from flask import Flask, render_template, request, redirect, url_for
 
@@ -17,6 +19,42 @@ player_data = {
     'time': 6,  # Start at 6 AM
     'period': 'AM',  # Start with AM
 }
+
+# Fake stock market data
+categories = {
+    "Technology": ["TechCo", "InnoSoft", "MicroWeb", "CloudGen", "DataFlow", "QuantumAI", "GreenEnergy", "SmartSys", "NetCom", "CyberTech"],
+    "Healthcare": ["MediLife", "PharmaPlus", "BioHealth", "WellnessCorp", "GeneNext", "CarePlan", "VaccineX", "TheraMed", "GlobalHealth", "MedSolutions"],
+    "Energy": ["EcoFuel", "SunPower", "GreenOil", "EnergyWave", "WindForce", "BioGasCo", "SolarMax", "PowerFusion", "HydroEnergy", "EarthPower"],
+    "Finance": ["SafeBank", "WealthyTrust", "CapitalGroup", "InvestCo", "LoanSecure", "GlobalInvest", "MoneyStream", "CashHold", "FundMate", "EquityPlus"],
+    "Consumer Goods": ["FreshFood", "DrinkLife", "SafeHome", "DailyGoods", "CleanCorp", "HomeEssentials", "QuickSnacks", "StyleBrand", "LuxCloth", "HappyHome"]
+}
+
+starting_prices = {
+    "Technology": 150, "Healthcare": 100, "Energy": 50, "Finance": 80, "Consumer Goods": 60
+}
+
+volatility_factors = {
+    "Technology": 0.02, "Healthcare": 0.015, "Energy": 0.03, "Finance": 0.01, "Consumer Goods": 0.012
+}
+
+# Initialize stocks with starting prices
+stock_market = {}
+for category, stocks in categories.items():
+    stock_market[category] = {stock: starting_prices[category] for stock in stocks}
+
+# Simulate stock price updates
+def update_stock_price(category, price):
+    sector_trend = random.uniform(-0.02, 0.02)  # Simulate sector-wide trends
+    random_fluctuation = random.uniform(-volatility_factors[category], volatility_factors[category])
+    price_change = price * (sector_trend + random_fluctuation)
+    return round(price + price_change, 2)
+
+# Simulate one day of stock price updates
+def simulate_stock_market():
+    for category, stocks in stock_market.items():
+        for stock, price in stocks.items():
+            new_price = update_stock_price(category, price)
+            stock_market[category][stock] = new_price
 
 # Function to reset the game data
 def reset_game():
@@ -78,13 +116,83 @@ def work():
     else:
         return render_template('choose_job.html')
 
-@app.route('/investment_decision')
-def investment_decision():
-    event = player_data.get('investment_event', None)
-    if event:
-        return render_template('investment.html', player_data=player_data, event=event)
-    return redirect(url_for('town'))  # Redirect to town if no investment event exists
+# Add this function to generate a stock price graph
+def generate_stock_chart():
+    # Simulate stock price history (for simplicity, generating random historical prices)
+    stock_history = {
+        "TechCo": [random.uniform(50, 150) for _ in range(10)],
+        "MediLife": [random.uniform(20, 80) for _ in range(10)],
+        "EcoFuel": [random.uniform(30, 90) for _ in range(10)]
+    }
 
+    plt.figure(figsize=(10, 6))
+
+    # Plot each stock's price history
+    for stock_name, prices in stock_history.items():
+        plt.plot(prices, label=stock_name)
+
+    plt.title("Stock Prices Over Time")
+    plt.xlabel("Time (days)")
+    plt.ylabel("Price")
+    plt.legend()
+
+    # Save the graph as an image in the static folder
+    if not os.path.exists('static/images'):
+        os.makedirs('static/images')
+    plt.savefig('static/images/stock_chart.png')
+    plt.close()
+
+
+# Call this function when rendering the investment center page
+@app.route('/investment_center')
+def investment_center():
+    simulate_stock_market()  # Simulate stock updates before rendering
+    generate_stock_chart()   # Generate the stock price chart
+    return render_template('stock_market.html', stock_market=stock_market, player_data=player_data)
+
+@app.route('/buy_stock', methods=['POST'])
+def buy_stock():
+    stock_name = request.form['stock_name']
+    
+    # Find the stock and buy it
+    for category, stocks in stock_market.items():
+        if stock_name in stocks:
+            stock_price = stocks[stock_name]
+            if player_data['money'] >= stock_price:  # Ensure player has enough money
+                player_data['money'] -= stock_price
+                player_data['investments'] += stock_price  # Add stock value to investments
+                return redirect(url_for('investment_center'))
+
+    return redirect(url_for('investment_center'))
+
+@app.route('/sell_stock', methods=['POST'])
+def sell_stock():
+    stock_name = request.form['stock_name']
+    
+    # Find the stock and sell it
+    for category, stocks in stock_market.items():
+        if stock_name in stocks:
+            stock_price = stocks[stock_name]
+            player_data['money'] += stock_price  # Add money from selling the stock
+            player_data['investments'] -= stock_price  # Deduct from investments
+            return redirect(url_for('investment_center'))
+
+    return redirect(url_for('investment_center'))
+
+# Decrease health and mental state after working
+def reduce_health_mental_state():
+    player_data['health'] = max(player_data['health'] - 5, 0)
+    player_data['mental_state'] = max(player_data['mental_state'] - 5, 0)
+
+# Check for Game Over
+def check_game_over():
+    if player_data['health'] == 0:
+        return redirect(url_for('game_over', reason="health"))
+    elif player_data['mental_state'] == 0:
+        return redirect(url_for('game_over', reason="mental_state"))
+    return None
+
+# Route for handling work actions
 @app.route('/work_action', methods=['POST'])
 def work_action():
     job = player_data['job']
@@ -95,33 +203,20 @@ def work_action():
         player_data['money'] += 2000
 
     # Decrease health and mental state after working
-    player_data['health'] = max(player_data['health'] - 5, 0)
-    player_data['mental_state'] = max(player_data['mental_state'] - 5, 0)
+    reduce_health_mental_state()
 
     # Check for Game Over
-    if player_data['health'] == 0:
-        return redirect(url_for('game_over', reason="health"))
-    elif player_data['mental_state'] == 0:
-        return redirect(url_for('game_over', reason="mental_state"))
+    game_over_redirect = check_game_over()
+    if game_over_redirect:
+        return game_over_redirect
 
     # Check for storyline progression
     storyline_message = check_storyline()
 
-    # Check for side hustle outcome
-    side_hustle_message = check_side_hustle_outcome()
-
     # Call random_event() to see if an event occurs and get the event message
     event_message = random_event()
 
-    # Check if it's a side hustle that requires a decision
-    if player_data.get('side_hustle') and not player_data['side_hustle']['accepted']:
-        return redirect(url_for('side_hustle_decision'))
-
-    # Check if it's an investment event that requires a decision
-    if player_data.get('investment_event'):
-        return redirect(url_for('investment_decision'))
-
-    return render_template('work.html', player_data=player_data, event_message=side_hustle_message or event_message, storyline_message=storyline_message)
+    return render_template('work.html', player_data=player_data, storyline_message=storyline_message, event_message=event_message)
 
 # Handle job selection from the work page
 @app.route('/choose_job', methods=['POST'])
@@ -176,7 +271,6 @@ def deposit_savings():
     
     return redirect(url_for('bank'))
 
-
 # Route for food shop
 @app.route('/food')
 def food():
@@ -217,7 +311,6 @@ def lore():
     return render_template('lore.html', player_data=player_data)
 
 # Function to handle random events
-# Expanded random event function to include side hustle discovery
 def random_event():
     event_probability = random.random()
 
@@ -275,147 +368,19 @@ def random_event():
         return event
     return None
 
-
-
-
-def check_side_hustle_outcome():
-    side_hustle = player_data.get('side_hustle', None)
-
-    if side_hustle and side_hustle['accepted']:
-        side_hustle['days_until_outcome'] -= 1
-
-        if side_hustle['days_until_outcome'] <= 0:
-            if random.random() < 0.5:  # 50% chance for success
-                player_data['money'] += 1000
-                event_message = f"Your side hustle '{side_hustle['name']}' was a success! You earned $1000."
-            else:
-                player_data['money'] -= 500
-                event_message = f"Your side hustle '{side_hustle['name']}' failed, and you had to pay $500 in production costs."
-
-            # Clear the side hustle after it's resolved
-            player_data['side_hustle'] = None
-
-            return event_message
-    return None
-
-
-@app.route('/side_hustle_decision')
-def side_hustle_decision():
-    side_hustle = player_data.get('side_hustle', None)
-    if side_hustle and not side_hustle['accepted']:
-        return render_template('side_hustle.html', player_data=player_data, side_hustle=side_hustle)
-    return redirect(url_for('town'))  # Redirect to town if no side hustle is pending
-
-@app.route('/handle_side_hustle', methods=['POST'])
-def handle_side_hustle():
-    decision = request.form['decision']
-    side_hustle = player_data.get('side_hustle', None)
-
-    if side_hustle:
-        if decision == 'accept':
-            player_data['side_hustle']['accepted'] = True
-            event_message = f"You accepted the side hustle: {side_hustle['name']}. The outcome will be decided in {side_hustle['days_until_outcome']} days."
+# Function to simulate stock price changes
+def update_stock_prices():
+    for stock in stocks:
+        # High-risk stocks fluctuate more than low-risk stocks
+        if stock['risk'] == 'high':
+            stock['price'] += random.uniform(-20, 20)
+        elif stock['risk'] == 'medium':
+            stock['price'] += random.uniform(-10, 10)
         else:
-            player_data['side_hustle'] = None  # Reject the side hustle
-            event_message = "You decided not to pursue the side hustle."
-
-        return render_template('town.html', player_data=player_data, event_message=event_message)
-    
-    return redirect(url_for('town'))
-
-@app.route('/handle_investment', methods=['POST'])
-def handle_investment():
-    decision = request.form['decision']
-    event = player_data.get('investment_event', None)
-    
-    if event:
-        if decision == 'accept':
-            # Investment decision was accepted
-            if "Invest $1000" in event:
-                if random.random() < 0.5:  # 50% chance to succeed
-                    player_data['money'] += 1000
-                    event_message = "The investment paid off! You earned $1000."
-                else:
-                    player_data['money'] -= 1000
-                    event_message = "The investment failed. You lost $1000."
-            elif "Invest $2000" in event:
-                if random.random() < 0.5:
-                    player_data['money'] += 2000
-                    event_message = "The stock soared! You earned $2000."
-                else:
-                    player_data['money'] -= 2000
-                    event_message = "The stock crashed. You lost $2000."
-        else:
-            # Investment decision was declined
-            event_message = "You decided not to invest."
-
-        # Clear the investment event after processing
-        player_data['investment_event'] = None
-
-        # Return the player to the town with the event message
-        return render_template('town.html', player_data=player_data, event_message=event_message)
-    
-    return redirect(url_for('town'))
-
-@app.route('/decision', methods=['POST'])
-def decision():
-    decision = request.form['decision']
-    
-    # Update the time (for each decision, the time advances)
-    update_time()
-
-    # Health and mental state degrade every cycle first
-    player_data['health'] = max(player_data['health'] - 5, 0)  # Health shouldn't go below 0
-    player_data['mental_state'] = max(player_data['mental_state'] - 5, 0)  # Mental state shouldn't go below 0
-
-    # Financial and health decisions
-    if decision == 'save':
-        player_data['savings'] += round(player_data['money'] * 0.1, 2)  # Round to 2 decimal places
-        player_data['money'] -= round(player_data['money'] * 0.1, 2)
-    elif decision == 'invest':
-        player_data['investments'] += round(player_data['money'] * 0.2, 2)
-        player_data['money'] -= round(player_data['money'] * 0.2, 2)
-    elif decision == 'spend':
-        player_data['money'] -= 500
-        player_data['mental_state'] = min(player_data['mental_state'] + 10, 100)  # Cap mental state at 100
-    elif decision == 'pay_debt':
-        if player_data['debt'] >= 1000:
-            player_data['debt'] -= round(1000, 2)
-            player_data['money'] -= round(1000, 2)
-        else:
-            player_data['money'] -= round(player_data['debt'], 2)
-            player_data['debt'] = 0
-    elif decision == 'take_loan':
-        player_data['money'] += round(5000, 2)
-        player_data['debt'] += round(5000 * 1.05, 2)  # 5% interest
-    elif decision == 'side_hustle':
-        player_data['money'] += round(3000, 2)
-    elif decision == 'buy_food':
-        player_data['money'] -= round(50, 2)
-        player_data['health'] = min(player_data['health'] + 10, 100)  # Cap health at 100
-    elif decision == 'buy_entertainment':
-        player_data['money'] -= round(200, 2)
-        player_data['mental_state'] = min(player_data['mental_state'] + 20, 100)  # Cap mental state at 100
-
-    # Format money and debt to 2 decimal places
-    player_data['money'] = round(player_data['money'], 2)
-    player_data['debt'] = round(player_data['debt'], 2)
-
-    # Check for Game Over
-    if player_data['health'] == 0:
-        return redirect(url_for('game_over', reason="health"))
-    elif player_data['mental_state'] == 0:
-        return redirect(url_for('game_over', reason="mental_state"))
-
-    # Check for random event
-    event_message = random_event()
-
-    # Check for victory condition
-    if player_data['debt'] == 0 and player_data['money'] >= 1000000:
-        return redirect(url_for('victory'))
-
-    # Redirect the player back to the game page after making a decision
-    return render_template('game.html', player_data=player_data, event_message=event_message)
+            stock['price'] += random.uniform(-5, 5)
+        
+        # Ensure stock price doesn’t go below 1
+        stock['price'] = max(stock['price'], 1)
 
 # Route for victory screen
 @app.route('/victory')
@@ -435,3 +400,4 @@ def game_over(reason):
 # Running the app
 if __name__ == '__main__':
     app.run(debug=True)
+

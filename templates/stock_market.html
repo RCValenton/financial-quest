@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Center</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Investment Center</h1>
+        <p>Here you can buy or sell stocks.</p>
+
+        <!-- Stock list with buy/sell buttons -->
+        <div class="stock-list">
+            {% for category, stocks in stock_market.items() %}
+            <h2>{{ category }} Stocks</h2>
+            <table>
+                <tr>
+                    <th>Stock</th>
+                    <th>Price</th>
+                    <th>Action</th>
+                </tr>
+                {% for stock, price in stocks.items() %}
+                <tr>
+                    <td>{{ stock }}</td>
+                    <td>${{ price }}</td>
+                    <td>
+                        <form action="/buy_stock" method="POST">
+                            <input type="hidden" name="stock_name" value="{{ stock }}">
+                            <button type="submit" class="btn-action">Buy</button>
+                        </form>
+                        <form action="/sell_stock" method="POST">
+                            <input type="hidden" name="stock_name" value="{{ stock }}">
+                            <button type="submit" class="btn-action">Sell</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% endfor %}
+        </div>
+
+        <!-- Button to go back to town -->
+        <form action="/town" method="GET">
+            <button type="submit" class="btn-back">Go Back to Town</button>
+        </form>
+
+        <!-- Graph display for the stocks -->
+        <img src="{{ url_for('static', filename='images/stock_chart.png') }}" alt="Stock Chart">
+    </div>
+</body>
+</html>
