@@ -63,6 +63,19 @@ def work():
     else:
         return render_template('choose_job.html')
 
+# Handle work action based on the job
+@app.route('/work_action', methods=['POST'])
+def work_action():
+    job = player_data['job']
+    
+    if job == 'Part-time Job':
+        player_data['money'] += 1000
+    elif job == 'Online Business':
+        player_data['money'] += 2000
+
+    # Redirect the player back to the work page after working
+    return redirect(url_for('work'))
+
 # Handle job selection from the work page
 @app.route('/choose_job', methods=['POST'])
 def choose_job():
@@ -83,15 +96,33 @@ def choose_job():
 def bank():
     return "<h1>Welcome to the Bank</h1><p>Bank functionality will be implemented soon.</p><a href='/town'>Go Back to Town</a>"
 
-# Example route for food shop (expand on this)
+# Route for food shop
 @app.route('/food')
 def food():
-    return "<h1>Welcome to the Food Shop</h1><p>Buy food here to maintain your health!</p><a href='/town'>Go Back to Town</a>"
+    return render_template('food.html', player_data=player_data)
 
-# Example route for entertainment (expand on this)
+# Route to handle buying food
+@app.route('/buy_food', methods=['POST'])
+def buy_food():
+    if player_data['money'] >= 50:  # Ensure the player has enough money
+        player_data['money'] -= 50
+        player_data['health'] = min(player_data['health'] + 10, 100)  # Cap health at 100
+
+    return redirect(url_for('food'))  # Redirect back to the Food Shop
+
+# Route for entertainment
 @app.route('/entertainment')
 def entertainment():
-    return "<h1>Welcome to the Entertainment Venue</h1><p>Spend some money to improve your mental state!</p><a href='/town'>Go Back to Town</a>"
+    return render_template('entertainment.html', player_data=player_data)
+
+# Route to handle spending on entertainment
+@app.route('/buy_entertainment', methods=['POST'])
+def buy_entertainment():
+    if player_data['money'] >= 200:  # Ensure the player has enough money
+        player_data['money'] -= 200
+        player_data['mental_state'] = min(player_data['mental_state'] + 20, 100)  # Cap mental state at 100
+
+    return redirect(url_for('entertainment'))  # Redirect back to the Entertainment venue
 
 # Route for restarting the game
 @app.route('/restart_game')

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Shop</title>
+</head>
+<body>
+    <h1>Food Shop</h1>
+    <p>Buy food to maintain your health.</p>
+
+    <p>Health: {{ player_data['health'] }}</p>
+    <p>Mental State: {{ player_data['mental_state'] }}</p>
+    <p>Money: ${{ player_data['money'] }}</p>
+
+    <form action="/buy_food" method="POST">
+        <button type="submit">Buy Food ($50)</button>
+    </form>
+
+    <br>
+    <a href="/town">Go Back to Town</a>
+</body>
+</html>

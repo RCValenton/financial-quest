@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entertainment</title>
+</head>
+<body>
+    <h1>Entertainment Venue</h1>
+    <p>Spend money to improve your mental state.</p>
+
+    <p>Health: {{ player_data['health'] }}</p>
+    <p>Mental State: {{ player_data['mental_state'] }}</p>
+    <p>Money: ${{ player_data['money'] }}</p>
+
+    <form action="/buy_entertainment" method="POST">
+        <button type="submit">Spend on Entertainment ($200)</button>
+    </form>
+
+    <br>
+    <a href="/town">Go Back to Town</a>
+</body>
+</html>
