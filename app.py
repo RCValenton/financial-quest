@@ -63,6 +63,14 @@ def work():
     else:
         return render_template('choose_job.html')
 
+@app.route('/investment_decision')
+def investment_decision():
+    event = player_data.get('investment_event', None)
+    if event:
+        return render_template('investment.html', player_data=player_data, event=event)
+    return redirect(url_for('town'))  # Redirect to town if no investment event exists
+
+
 @app.route('/work_action', methods=['POST'])
 def work_action():
     job = player_data['job']
@@ -92,10 +100,11 @@ def work_action():
     if player_data.get('side_hustle') and not player_data['side_hustle']['accepted']:
         return redirect(url_for('side_hustle_decision'))
 
+    # Check if it's an investment event that requires a decision
+    if player_data.get('investment_event'):
+        return redirect(url_for('investment_decision'))
+
     return render_template('work.html', player_data=player_data, event_message=side_hustle_message or event_message)
-
-
-
 
 
 # Handle job selection from the work page
@@ -196,8 +205,8 @@ def lore():
 def random_event():
     event_probability = random.random()
 
-    # 10% chance of a random event
-    if event_probability < 0.10:
+    # 15% chance of a random event, splitting between types of events
+    if event_probability < 0.15:
         event_type = random.choice(['good', 'bad', 'investment', 'side_hustle'])
 
         if event_type == 'good':
@@ -236,23 +245,20 @@ def random_event():
             return None  # Return None to indicate the event requires input
 
         elif event_type == 'side_hustle':
-            # Create a list of random side hustle names
             side_hustles = ['selling homemade candles', 'starting a blog', 'creating an online store', 'becoming a freelancer']
             side_hustle_name = random.choice(side_hustles)
             event = f"You discovered a side hustle opportunity: {side_hustle_name}. Do you want to accept?"
 
-            # Store the side hustle details
             player_data['side_hustle'] = {
                 'name': side_hustle_name,
-                'days_until_outcome': random.randint(1, 3),  # Random number of days until the result
-                'accepted': False  # Whether the player accepted or not
+                'days_until_outcome': random.randint(1, 3),
+                'accepted': False
             }
-
-            # Return None to indicate the player must make a choice
             return None
 
         return event
     return None
+
 
 
 
