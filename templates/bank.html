@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank</title>
+</head>
+<body>
+    <h1>Bank Services</h1>
+    <p>Money: ${{ player_data['money'] }}</p>
+    <p>Debt: ${{ player_data['debt'] }}</p>
+    <p>Savings: ${{ player_data['savings'] }}</p>
+
+    <h2>Take a Loan</h2>
+    <form action="/take_loan" method="POST">
+        <button type="submit">Take $5000 Loan (5% Interest)</button>
+    </form>
+
+    <h2>Pay Off Debt</h2>
+    <form action="/pay_debt" method="POST">
+        <button type="submit">Pay $1000 Towards Debt</button>
+    </form>
+
+    <h2>Deposit Money into Savings</h2>
+    <form action="/deposit_savings" method="POST">
+        <input type="number" name="deposit_amount" placeholder="Amount to Deposit" min="1" required>
+        <button type="submit">Deposit</button>
+    </form>
+    <br>
+    <a href="/town">Go Back to Town</a>
+</body>
+</html>

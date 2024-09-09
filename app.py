@@ -101,11 +101,45 @@ def choose_job():
     # Redirect the player to the apartment page after selecting a job
     return redirect(url_for('apartment'))
 
-
-# Example route for bank (expand on this)
+# Route for the bank page
 @app.route('/bank')
 def bank():
-    return "<h1>Welcome to the Bank</h1><p>Bank functionality will be implemented soon.</p><a href='/town'>Go Back to Town</a>"
+    return render_template('bank.html', player_data=player_data)
+
+# Handle taking a loan
+@app.route('/take_loan', methods=['POST'])
+def take_loan():
+    player_data['money'] += 5000
+    player_data['debt'] += 5000 * 1.05  # 5% interest
+    return redirect(url_for('bank'))
+
+# Handle paying off debt
+@app.route('/pay_debt', methods=['POST'])
+def pay_debt():
+    if player_data['debt'] >= 1000 and player_data['money'] >= 1000:
+        player_data['debt'] -= 1000
+        player_data['money'] -= 1000
+    return redirect(url_for('bank'))
+
+# Handle depositing money into savings
+@app.route('/deposit_savings', methods=['POST'])
+def deposit_savings():
+    deposit_amount = request.form['deposit_amount']
+
+    # Check if deposit_amount is empty or not a valid number
+    if not deposit_amount.isdigit() or int(deposit_amount) <= 0:
+        # If it's empty or not a valid positive number, redirect back to the bank page with no action
+        return redirect(url_for('bank'))
+    
+    deposit_amount = int(deposit_amount)
+
+    # Check if the player has enough money to deposit
+    if player_data['money'] >= deposit_amount:
+        player_data['money'] -= deposit_amount
+        player_data['savings'] += deposit_amount
+    
+    return redirect(url_for('bank'))
+
 
 # Route for food shop
 @app.route('/food')
@@ -248,7 +282,6 @@ def decision():
 
     # Redirect the player back to the game page after making a decision
     return render_template('game.html', player_data=player_data, event_message=event_message)
-
 
 # Route for victory screen
 @app.route('/victory')
