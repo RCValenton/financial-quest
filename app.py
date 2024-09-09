@@ -40,6 +40,7 @@ def game():
 @app.route('/decision', methods=['POST'])
 def decision():
     decision = request.form['decision']
+    
     if decision == 'save':
         player_data['savings'] += player_data['money'] * 0.1
         player_data['money'] -= player_data['money'] * 0.1
@@ -49,9 +50,20 @@ def decision():
     elif decision == 'spend':
         player_data['money'] -= 500  # Spend $500
     elif decision == 'pay_debt':
-        player_data['debt'] -= 1000  # Pay off $1000 in debt
+        if player_data['debt'] >= 1000:
+            player_data['debt'] -= 1000  # Pay off $1000 in debt
+            player_data['money'] -= 1000
+        else:
+            player_data['money'] -= player_data['debt']
+            player_data['debt'] = 0  # Debt fully paid
+    elif decision == 'take_loan':
+        player_data['money'] += 5000  # Add loan to money
+        player_data['debt'] += 5000 * 1.05  # 5% interest on loan
+    elif decision == 'side_hustle':
+        player_data['money'] += 3000  # Earn $3000 from side hustle
 
     return redirect(url_for('game'))
+
 
 # Running the app
 if __name__ == '__main__':
