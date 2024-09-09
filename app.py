@@ -30,7 +30,7 @@ def reset_game():
         'health': 100,
         'mental_state': 100,
         'day': 1,
-        'time': 6,  # Start at 6 AM
+        'time': 6,
         'period': 'AM',
     }
 
@@ -46,10 +46,24 @@ def update_time():
     elif player_data['time'] == 13:
         player_data['time'] = 1  # Reset time after 12-hour format
 
-@app.route('/')
-def lore():
-    return render_template('lore.html', player_data=player_data)
+# Route for apartment page (starting point after selecting a job)
+@app.route('/apartment')
+def apartment():
+    return render_template('apartment.html', player_data=player_data)
 
+@app.route('/town')
+def town():
+    return render_template('town.html', player_data=player_data)
+
+# Route for work page
+@app.route('/work')
+def work():
+    if player_data['job']:  # If the player already has a job
+        return render_template('work.html', player_data=player_data)
+    else:
+        return render_template('choose_job.html')
+
+# Handle job selection from the work page
 @app.route('/choose_job', methods=['POST'])
 def choose_job():
     selected_job = request.form['job']
@@ -60,11 +74,35 @@ def choose_job():
         player_data['job'] = 'Online Business'
         player_data['money'] += 2000
 
-    return redirect(url_for('game'))
+    # Redirect the player to the apartment page after selecting a job
+    return redirect(url_for('apartment'))
 
-@app.route('/game')
-def game():
-    return render_template('game.html', player_data=player_data)
+
+# Example route for bank (expand on this)
+@app.route('/bank')
+def bank():
+    return "<h1>Welcome to the Bank</h1><p>Bank functionality will be implemented soon.</p><a href='/town'>Go Back to Town</a>"
+
+# Example route for food shop (expand on this)
+@app.route('/food')
+def food():
+    return "<h1>Welcome to the Food Shop</h1><p>Buy food here to maintain your health!</p><a href='/town'>Go Back to Town</a>"
+
+# Example route for entertainment (expand on this)
+@app.route('/entertainment')
+def entertainment():
+    return "<h1>Welcome to the Entertainment Venue</h1><p>Spend some money to improve your mental state!</p><a href='/town'>Go Back to Town</a>"
+
+# Route for restarting the game
+@app.route('/restart_game')
+def restart_game():
+    reset_game()
+    return redirect(url_for('apartment'))
+
+# Route for the main lore page
+@app.route('/')
+def lore():
+    return render_template('lore.html', player_data=player_data)
 
 # Function to handle random events
 def random_event():
@@ -109,6 +147,7 @@ def random_event():
     
     return None  # No event occurred
 
+# Route for making decisions
 @app.route('/decision', methods=['POST'])
 def decision():
     decision = request.form['decision']
@@ -173,6 +212,7 @@ def decision():
 def victory():
     return render_template('victory.html')
 
+# Route for game over screen
 @app.route('/game_over/<reason>')
 def game_over(reason):
     if reason == "mental_state":
@@ -181,11 +221,6 @@ def game_over(reason):
         message = "Game Over! You've succumbed to illness due to poor health."
     
     return render_template('game_over.html', message=message)
-
-@app.route('/restart_game')
-def restart_game():
-    reset_game()
-    return redirect(url_for('lore'))
 
 # Running the app
 if __name__ == '__main__':

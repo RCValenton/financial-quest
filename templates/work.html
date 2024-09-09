@@ -1,0 +1,28 @@
+<!-- templates/work.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work</title>
+</head>
+<body>
+    <h1>You are at work as a {{ player_data['job'] }}</h1>
+    <p>Health: {{ player_data['health'] }}</p>
+    <p>Mental State: {{ player_data['mental_state'] }}</p>
+
+    {% if player_data['job'] == 'Part-time Job' %}
+        <p>Earn $1000 for a day's work.</p>
+        <form action="/work_action" method="POST">
+            <button type="submit" name="work" value="part_time">Work a Day</button>
+        </form>
+    {% elif player_data['job'] == 'Online Business' %}
+        <p>Earn $2000 for a day's work.</p>
+        <form action="/work_action" method="POST">
+            <button type="submit" name="work" value="business">Work a Day</button>
+        </form>
+    {% endif %}
+    
+    <a href="/apartment">Go Back to Apartment</a>
+</body>
+</html>
