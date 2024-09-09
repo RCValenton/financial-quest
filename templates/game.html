@@ -7,10 +7,13 @@
 </head>
 <body>
     <h1>Manage Your Finances</h1>
+    <p>Day: {{ player_data['day'] }}</p>
     <p>Current Money: ${{ player_data['money'] }}</p>
     <p>Savings: ${{ player_data['savings'] }}</p>
     <p>Debt: ${{ player_data['debt'] }}</p>
     <p>Investments: ${{ player_data['investments'] }}</p>
+    <p>Health: {{ player_data['health'] }}</p>
+    <p>Mental State: {{ player_data['mental_state'] }}</p>
 
     <form action="/decision" method="post">
         <p>Choose a financial decision:</p>
@@ -20,6 +23,8 @@
         <button type="submit" name="decision" value="pay_debt">Pay $1000 Off Debt</button>
         <button type="submit" name="decision" value="take_loan">Take a $5000 Loan (with 5% interest)</button>
         <button type="submit" name="decision" value="side_hustle">Do a Side Hustle ($3000 extra)</button>
+        <button type="submit" name="decision" value="buy_food">Buy Food ($50) to Maintain Health</button>
+        <button type="submit" name="decision" value="buy_entertainment">Spend on Entertainment ($200) to Improve Mental State</button>
     </form>
 </body>
 </html>
