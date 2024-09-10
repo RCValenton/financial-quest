@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ stock_name }} Stock Graph</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>{{ stock_name }} Price History</h1>
+        <p>Current Price: ${{ stock_price }}</p>
+
+        <img src="{{ url_for('static', filename='images/' + stock_name + '_chart.png') }}" alt="{{ stock_name }} Stock Graph">
+
+        <br>
+        <form action="/investment_center" method="GET">
+            <button type="submit" class="btn-back">Back to Investment Center</button>
+        </form>
+    </div>
+</body>
+</html>

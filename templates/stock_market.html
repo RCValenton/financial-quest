@@ -5,49 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Investment Center</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script>
+        // JavaScript for showing stock list on hover
+        function showStocks(category) {
+            document.getElementById(category).style.display = 'block';
+        }
+
+        function hideStocks(category) {
+            document.getElementById(category).style.display = 'none';
+        }
+    </script>
 </head>
 <body>
     <div class="container">
         <h1>Investment Center</h1>
-        <p>Here you can buy or sell stocks.</p>
+        <p>Hover over a category to view stocks, and click a stock to view its graph.</p>
 
-        <!-- Stock list with buy/sell buttons -->
-        <div class="stock-list">
+        <!-- Stock categories with hover effect -->
+        <div class="stock-categories">
             {% for category, stocks in stock_market.items() %}
-            <h2>{{ category }} Stocks</h2>
-            <table>
-                <tr>
-                    <th>Stock</th>
-                    <th>Price</th>
-                    <th>Action</th>
-                </tr>
-                {% for stock, price in stocks.items() %}
-                <tr>
-                    <td>{{ stock }}</td>
-                    <td>${{ price }}</td>
-                    <td>
-                        <form action="/buy_stock" method="POST">
-                            <input type="hidden" name="stock_name" value="{{ stock }}">
-                            <button type="submit" class="btn-action">Buy</button>
-                        </form>
-                        <form action="/sell_stock" method="POST">
-                            <input type="hidden" name="stock_name" value="{{ stock }}">
-                            <button type="submit" class="btn-action">Sell</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </table>
+            <div class="category" onmouseover="showStocks('{{ category }}')" onmouseout="hideStocks('{{ category }}')">
+                <h2>{{ category }}</h2>
+                <ul id="{{ category }}" class="stock-list" style="display:none;">
+                    {% for stock in stocks.keys() %}
+                    <li>
+                        <a href="/view_stock/{{ stock }}">{{ stock }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
             {% endfor %}
+        </div>
+
+        <!-- Player's Stock Profile -->
+        <div class="player-profile">
+            <h2>Your Stock Profile</h2>
+            <ul>
+                {% for stock in player_portfolio %}
+                <li>{{ stock }}: {{ player_data['stock_investments'][stock] }}</li>
+                {% endfor %}
+            </ul>
+            <form action="/liquidate_all" method="POST">
+                <button type="submit" class="btn-action">Liquidate All Investments</button>
+            </form>
         </div>
 
         <!-- Button to go back to town -->
         <form action="/town" method="GET">
             <button type="submit" class="btn-back">Go Back to Town</button>
         </form>
-
-        <!-- Graph display for the stocks -->
-        <img src="{{ url_for('static', filename='images/stock_chart.png') }}" alt="Stock Chart">
     </div>
 </body>
 </html>

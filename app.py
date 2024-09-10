@@ -16,11 +16,13 @@ player_data = {
     'health': 100,
     'mental_state': 100,
     'day': 1,
-    'time': 6,  # Start at 6 AM
-    'period': 'AM',  # Start with AM
+    'time': 6,
+    'period': 'AM',
+    'stock_investments': {}  # Track player's stock investments
 }
 
-# Fake stock market data
+
+# Define stock categories and initial data
 categories = {
     "Technology": ["TechCo", "InnoSoft", "MicroWeb", "CloudGen", "DataFlow", "QuantumAI", "GreenEnergy", "SmartSys", "NetCom", "CyberTech"],
     "Healthcare": ["MediLife", "PharmaPlus", "BioHealth", "WellnessCorp", "GeneNext", "CarePlan", "VaccineX", "TheraMed", "GlobalHealth", "MedSolutions"],
@@ -28,6 +30,54 @@ categories = {
     "Finance": ["SafeBank", "WealthyTrust", "CapitalGroup", "InvestCo", "LoanSecure", "GlobalInvest", "MoneyStream", "CashHold", "FundMate", "EquityPlus"],
     "Consumer Goods": ["FreshFood", "DrinkLife", "SafeHome", "DailyGoods", "CleanCorp", "HomeEssentials", "QuickSnacks", "StyleBrand", "LuxCloth", "HappyHome"]
 }
+
+# Initialize stock_price_history for all stocks in the categories
+stock_price_history = {}
+
+# For each category and stock, generate random price history
+for category, stocks in categories.items():
+    for stock in stocks:
+        stock_price_history[stock] = [random.uniform(50, 150) for _ in range(10)]  # Generate 10 days of random prices
+
+# Generate specific stock graph
+def generate_stock_graph(stock_name):
+    prices = stock_price_history.get(stock_name, [])
+    plt.figure(figsize=(10, 6))
+    plt.plot(prices, label=stock_name)
+    plt.title(f"{stock_name} Price History")
+    plt.xlabel("Days")
+    plt.ylabel("Price")
+    plt.legend()
+
+    # Save the graph in the static directory
+    if not os.path.exists('static/images'):
+        os.makedirs('static/images')
+    plt.savefig(f'static/images/{stock_name}_chart.png')
+    plt.close()
+
+
+# Route to view a specific stock's graph
+@app.route('/view_stock/<stock_name>')
+def view_stock(stock_name):
+    stock_name = stock_name.capitalize()  # Normalize case (or use lower())
+    stock_price = stock_market.get(stock_name, None)
+    if stock_price is None:
+        print("Available stocks in stock_market:", stock_market.keys())
+        return f"Stock {stock_name} not found", 404
+    generate_stock_graph(stock_name)
+    return render_template('view_stock.html', stock_name=stock_name, stock_price=stock_price, player_data=player_data)
+
+
+
+# Route to liquidate all investments
+@app.route('/liquidate_all', methods=['POST'])
+def liquidate_all():
+    total_value = sum(player_data['stock_investments'].values())
+    player_data['money'] += total_value  # Add all stock value to player's money
+    player_data['stock_investments'] = {}  # Clear stock investments
+    return redirect(url_for('investment_center'))
+
+# Fake stock market data
 
 starting_prices = {
     "Technology": 150, "Healthcare": 100, "Energy": 50, "Finance": 80, "Consumer Goods": 60
@@ -38,9 +88,16 @@ volatility_factors = {
 }
 
 # Initialize stocks with starting prices
+# Ensure that stock_market is initialized for all stocks in categories
+# Initialize stock prices for each stock in categories
 stock_market = {}
+
+# Loop through categories and populate stock_market with random prices
 for category, stocks in categories.items():
-    stock_market[category] = {stock: starting_prices[category] for stock in stocks}
+    for stock in stocks:
+        stock_market[stock] = random.uniform(50, 150)  # Random price for each stock
+
+
 
 # Simulate stock price updates
 def update_stock_price(category, price):
@@ -153,31 +210,26 @@ def investment_center():
 @app.route('/buy_stock', methods=['POST'])
 def buy_stock():
     stock_name = request.form['stock_name']
-    
-    # Find the stock and buy it
-    for category, stocks in stock_market.items():
-        if stock_name in stocks:
-            stock_price = stocks[stock_name]
-            if player_data['money'] >= stock_price:  # Ensure player has enough money
-                player_data['money'] -= stock_price
-                player_data['investments'] += stock_price  # Add stock value to investments
-                return redirect(url_for('investment_center'))
+    stock_price = stock_market.get(stock_name)
+
+    if player_data['money'] >= stock_price:  # Ensure player has enough money
+        player_data['money'] -= stock_price
+        player_data['stock_investments'][stock_name] = player_data['stock_investments'].get(stock_name, 0) + stock_price  # Track the investment
+        return redirect(url_for('investment_center'))
 
     return redirect(url_for('investment_center'))
 
 @app.route('/sell_stock', methods=['POST'])
 def sell_stock():
     stock_name = request.form['stock_name']
-    
-    # Find the stock and sell it
-    for category, stocks in stock_market.items():
-        if stock_name in stocks:
-            stock_price = stocks[stock_name]
-            player_data['money'] += stock_price  # Add money from selling the stock
-            player_data['investments'] -= stock_price  # Deduct from investments
-            return redirect(url_for('investment_center'))
+    stock_price = stock_market.get(stock_name)
+
+    if stock_name in player_data['stock_investments']:
+        player_data['money'] += player_data['stock_investments'].pop(stock_name)  # Remove investment and add money back
+        return redirect(url_for('investment_center'))
 
     return redirect(url_for('investment_center'))
+
 
 # Decrease health and mental state after working
 def reduce_health_mental_state():

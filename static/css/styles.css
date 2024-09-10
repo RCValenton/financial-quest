@@ -182,3 +182,62 @@ a:hover {
 .stock-list th {
     background-color: #f2f2f2;
 }
+
+.container {
+    width: 80%;
+    margin: 0 auto;
+}
+
+.stock-categories {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+.category {
+    background-color: #f0f0f0;
+    padding: 10px;
+    border: 1px solid #ccc;
+    margin: 10px;
+    width: 20%;
+    text-align: center;
+}
+
+.stock-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.stock-list li {
+    margin: 5px 0;
+}
+
+.stock-list a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+.stock-list a:hover {
+    text-decoration: underline;
+}
+
+.player-profile {
+    margin-top: 30px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+}
+
+.btn-action, .btn-back {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    margin-top: 10px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-action:hover, .btn-back:hover {
+    background-color: #0056b3;
+}
+
